@@ -1,0 +1,949 @@
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Create the necessary topology and coordinate files for non-standard residue</title>
+	<style type="text/css" media="all"><!--
+.ds11 /*agl rulekind: base;*/ { color: #f00; font-size: 22px; font-family: monospace; font-weight: bold; }
+.ds16 /*agl rulekind: base;*/ { font-size: 18px; font-family: monospace; font-weight: bold; }
+--></style>
+<script type="text/javascript" async="" src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/ga.js"></script><script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-19959974-2']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</head>
+
+<body style="tab-interval:36.0pt" vlink="purple" link="blue" lang="EN-US">
+	<div class="Section1">
+		<h2>Objectives</h2>
+		<p>This section of the tutorial introduces the AMBER programs/tools necessary to set-up the input files required by <i><span style="font-family:&quot;Courier New&quot;">sander</span></i> for performing minimization and molecular dynamics using non-standard residues.</p>
+		<div class="Section1">
+			<h2>Prerequisites:</h2>
+			<ul>
+				<li>Amber 12: tleap or xleap (tleap with GUI)
+				</li><li>Amber 12: sander
+				</li><li>Text editor
+				</li><li>Starting coordinates (PDB)
+				</li><li><a href="http://sf.anu.edu.au/~vvv900/monash/standard-setup/AmberTools12.pdf">AmberTools12</a> Manual
+				</li><li><a href="http://sf.anu.edu.au/~vvv900/monash/standard-setup/Amber12.pdf">Amber12</a> Manual
+				</li><li>VMD visualization program
+			</li></ul>
+		</div>
+		<p>The main program employed in this section will be <b><span style="font-family: &quot;Courier New&quot;">LEaP</span></b>:
+ A program that reads in force field, topology and coordinate 
+information and produces the files necessary for production calculations
+ (<i>i.e.</i> minimization, molecular dynamics, analysis,...). There are two versions of this program, a graphical interface called <i><span style="font-family:&quot;Courier New&quot;">xleap</span></i> and a terminal interface called <i><span style="font-family:&quot;Courier New&quot;">tleap</span></i>. Since we want to "see" graphical representations of our models, this tutorial will use <i><span style="font-family:&quot;Courier New&quot;">xleap</span></i>.</p>
+		<p>The workflow for preparing parameter files for non-standard  residues is shown below:</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/workflow-01.gif" alt="" width="962" height="615" border="0"></p>
+		<p class="MsoNormal">At the end we shall see how to analyze MD results extracting information from sander output file. Next we shall use a program <span style="font-family:&quot;Courier New&quot;">ptraj</span> to process and analyze sets of 3-D coordinates read in from the MD trajectory input file.</p>
+		<h2>Create the necessary topology and coordinate files</h2>
+		<p><span style="mso-tab-count:1">����������� </span>The first stage is
+ to create topology (prmtop) and coordinate (inpcrd) files for the 
+system we wish to simulate. We will use Xleap to do this.</p>
+		<p><span style="mso-tab-count:1">����������� </span>The original file, <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1CGH.pdb">1CGH.pdb</a>, is an X-ray structure of a human cathepsin G in complex with inhibitor Suc-Val-Pro-Phe<sup>p</sup>-(OPh)<sub>2</sub> covalently bonded to the Ser-195 of a protein.</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/protein-inhibitor.jpg" alt="" width="763" height="526" border="0"></p>
+		<h3>Editing the pdb file</h3>
+		<p class="MsoNormal"><span style="mso-tab-count:1">����������� </span>1) Read all of the header information in a pdb file.</p>
+		<p class="MsoNormal"><span style="mso-tab-count:1">����������� </span>2) All of the connectivity data at the end of the PDB was removed as this will not be used by XLeap.</p>
+		<p><span style="font-size:10.0pt"><span style="mso-tab-count:1">��������������� </span>3</span>) Residue names of cysteines 42, 58, 136, 168, 182, and 201 have been changed from CYS to CYX.</p>
+		<p><span style="mso-tab-count:1">����������� </span>4) All histidine residues in original <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1CGH.pdb">1CGH.pdb</a> file are protonated at both positions, so all HIS residues have been renamed into HIP.</p>
+		<p><span style="mso-tab-count:1">����������� </span>5) Serine-195 
+residue of a protein is covalently bonded to the PPH residue of an 
+inhibitor. Since we can expect a large disturbance in charge 
+distribution on a Serine-195 after phosphorilation we will define it as a
+ separate residue (SEP in our case � SErine Phosphorilated)</p>
+		<p>Original:</p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">�� </span>1871<span style="mso-spacerun:yes">� </span><st1:place w:st="on">N<span style="mso-spacerun:yes">�� </span>SER</st1:place> A 195<span style="mso-spacerun:yes">����� </span>13.718<span style="mso-spacerun:yes">� </span>33.026<span style="mso-spacerun:yes">�� </span>5.055<span style="mso-spacerun:yes">� </span>1.00 11.57<span style="mso-spacerun:yes">���������� </span>N</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">�� </span>1872<span style="mso-spacerun:yes">� </span>CA<span style="mso-spacerun:yes">� </span>SER A 195<span style="mso-spacerun:yes">����� </span>14.819<span style="mso-spacerun:yes">� </span>33.619<span style="mso-spacerun:yes">�� </span>5.831<span style="mso-spacerun:yes">� </span>1.00 11.59<span style="mso-spacerun:yes">���������� </span>C</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">�� </span>1873<span style="mso-spacerun:yes">� </span>C<span style="mso-spacerun:yes">�� </span>SER A 195<span style="mso-spacerun:yes">����� </span>15.463<span style="mso-spacerun:yes">� </span>32.581<span style="mso-spacerun:yes">�� </span>6.740<span style="mso-spacerun:yes">� </span>1.00 10.79<span style="mso-spacerun:yes">���������� </span>C</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">�� </span>1874<span style="mso-spacerun:yes">� </span>O<span style="mso-spacerun:yes">�� </span>SER A 195<span style="mso-spacerun:yes">����� </span>14.748<span style="mso-spacerun:yes">� </span>31.761<span style="mso-spacerun:yes">�� </span>7.334<span style="mso-spacerun:yes">� </span>1.00 11.03<span style="mso-spacerun:yes">���������� </span>O</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">�� </span>1875<span style="mso-spacerun:yes">� </span>CB<span style="mso-spacerun:yes">� </span>SER A 195<span style="mso-spacerun:yes">����� </span>14.319<span style="mso-spacerun:yes">� </span>34.766<span style="mso-spacerun:yes">�� </span>6.722<span style="mso-spacerun:yes">� </span>1.00 14.66<span style="mso-spacerun:yes">���������� </span>C</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">�� </span>1876<span style="mso-spacerun:yes">� </span>OG<span style="mso-spacerun:yes">� </span>SER A 195<span style="mso-spacerun:yes">����� </span>13.988<span style="mso-spacerun:yes">� </span>35.933<span style="mso-spacerun:yes">�� </span>5.966<span style="mso-spacerun:yes">� </span>1.00 14.83<span style="mso-spacerun:yes">���������� </span>O</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">�� </span>1877<span style="mso-spacerun:yes">� </span>H<span style="mso-spacerun:yes">�� </span>SER A 195<span style="mso-spacerun:yes">����� </span>12.845<span style="mso-spacerun:yes">� </span>33.454<span style="mso-spacerun:yes">�� </span>5.036<span style="mso-spacerun:yes">� </span>1.00 20.00<span style="mso-spacerun:yes">���������� </span>H</span></p>
+		<p>Modified:</p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">�� </span>1871<span style="mso-spacerun:yes">� </span>N<span style="mso-spacerun:yes">�� </span>SEP A 195<span style="mso-spacerun:yes">����� </span>13.718<span style="mso-spacerun:yes">� </span>33.026<span style="mso-spacerun:yes">�� </span>5.055<span style="mso-spacerun:yes">� </span>1.00 11.57<span style="mso-spacerun:yes">���������� </span>N</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">�� </span>1872<span style="mso-spacerun:yes">� </span>CA<span style="mso-spacerun:yes">� </span>SEP A 195<span style="mso-spacerun:yes">����� </span>14.819<span style="mso-spacerun:yes">� </span>33.619<span style="mso-spacerun:yes">�� </span>5.831<span style="mso-spacerun:yes">� </span>1.00 11.59<span style="mso-spacerun:yes">���������� </span>C</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">�� </span>1873<span style="mso-spacerun:yes">� </span>C<span style="mso-spacerun:yes">�� </span>SEP A 195<span style="mso-spacerun:yes">����� </span>15.463<span style="mso-spacerun:yes">� </span>32.581<span style="mso-spacerun:yes">�� </span>6.740<span style="mso-spacerun:yes">� </span>1.00 10.79<span style="mso-spacerun:yes">���������� </span>C</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">�� </span>1874<span style="mso-spacerun:yes">� </span>O<span style="mso-spacerun:yes">�� </span>SEP A 195<span style="mso-spacerun:yes">����� </span>14.748<span style="mso-spacerun:yes">� </span>31.761<span style="mso-spacerun:yes">�� </span>7.334<span style="mso-spacerun:yes">� </span>1.00 11.03<span style="mso-spacerun:yes">���������� </span>O</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">�� </span>1875<span style="mso-spacerun:yes">� </span>CB<span style="mso-spacerun:yes">� </span>SEP A 195<span style="mso-spacerun:yes">����� </span>14.319<span style="mso-spacerun:yes">� </span>34.766<span style="mso-spacerun:yes">�� </span>6.722<span style="mso-spacerun:yes">� </span>1.00 14.66<span style="mso-spacerun:yes">���������� </span>C</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">�� </span>1876<span style="mso-spacerun:yes">� </span>OG<span style="mso-spacerun:yes">� </span>SEP A 195<span style="mso-spacerun:yes">����� </span>13.988<span style="mso-spacerun:yes">� </span>35.933<span style="mso-spacerun:yes">�� </span>5.966<span style="mso-spacerun:yes">� </span>1.00 14.83<span style="mso-spacerun:yes">���������� </span>O</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">�� </span>1877<span style="mso-spacerun:yes">� </span>H<span style="mso-spacerun:yes">�� </span>SEP A 195<span style="mso-spacerun:yes">����� </span>12.845<span style="mso-spacerun:yes">� </span>33.454<span style="mso-spacerun:yes">�� </span>5.036<span style="mso-spacerun:yes">� </span>1.00 20.00<span style="mso-spacerun:yes">���������� </span>H</span></p>
+		<p><o:p>�</o:p></p>
+		<p>The resulting pdb file is here: <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-modified.pdb">1cgh-modified.pdb</a></p>
+		<p>Next step was in editing resulting pdb file in molecular editor and
+ deleting all hydrogens and water molecules which are more than 3 A away
+ from the protein.</p>
+		<p>Pdb file is here: <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-mod2.pdb">1cgh-mod2.pdb</a></p>
+		<p>If simply loaded our edited pdb file above into XLeap at this point
+ the vast majority of the file would load ok. There would be problems, 
+however, with our three non-standard residues SEP, SIN, and PPH.</p>
+		<p>Start xleap:</p>
+		<p><font size="+1" face="monospace" color="red"><strong>xleap -s -f leaprc.ff12SB</strong></font></p>
+		<p><font color="black">Load PDB file:</font></p>
+		<p><span class="ds11">x=loadpdb 1cgh-mod2.pdb</span></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/xleap-first-attempt.gif" alt="" width="808" height="818" border="0"></p>
+		<p>We see that XLeap cannot load our PDB file successfully. Before we 
+can successfully load our modified pdb file into XLeap we need to tell 
+it what our three non-standard units are.</p>
+		<p><b><i>Creating SIN unit</i></b></p>
+		<p>First we shall create library file for our SIN unit. The quickest 
+way to do this, since we need initial structure for this unit, is to 
+simply cut it out of the <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-mod2.pdb">1cgh-mod2.pdb</a> file and save it as its own pdb file.</p>
+		<p>So, we cut out SIN and adjacent amino-acid, VAL: <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin-val.pdb">sin-val.pdb</a>. Our aim is to prepare a system for calculating RESP charges using Gaussian.</p>
+		<p>We load it in into Xleap and start editing</p>
+		<p><span class="ds16">sin = loadpdb sin-val.pdb</span></p>
+		<p><span class="ds16">edit sin</span></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/xleap-load-sin-val.gif" alt="" width="600" height="342" border="0"></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-sin-val.gif" alt="" width="662" height="761" border="0"></p>
+		<p><font color="#0066ff">Within this window the LEFT mouse button 
+allows atom selection (drag and drop), the MIDDLE mouse button rotates 
+the molecule and the RIGHT mouse button translates it. If the MIDDLE 
+button does not work you can simulate it by holding down the <i>Ctrl</i> key and the LEFT mouse button. To make the image larger or smaller, simultaneously hold down the MIDDLE and RIGHT buttons (or <i>Ctrl</i> and RIGHT) and move the mouse up to zoom in or down to zoom out.</font></p>
+		<p><font color="#0066ff">If you played with selecting atoms using the left mouse button you can unselect a region by holding down the <i>shift</i>
+ key while drawing the selection rectangle. To select everything, double
+ click the LEFT button (and to unselect, do the same while holding down 
+the <i>shift</i> key).</font></p>
+		<p>Then we select �Draw� checkbox in the �Manipulation� panel:</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-select-edit.gif" alt="" width="662" height="761" border="0"></p>
+		<p>And start to draw missing bonds (click on atom and drag cursor to another atom):</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-drawing-bond.gif" alt="" width="662" height="761" border="0"></p>
+		<p>Since we don�t need Valine residue to calculate charges but only a 
+N(Me) moiety which will mimic an adjacent amino-acid we switched to 
+�Erase� mode</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-select-erase.gif" alt="" width="662" height="761" border="0"></p>
+		<p>and started to erase atoms of a valine residue (point cursor on atom to be erased and left-click)</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-erasing.gif" alt="" width="662" height="761" border="0"></p>
+		<p>So, our resulting structure looks like this:</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-after-erasing.gif" alt="" width="662" height="761" border="0"></p>
+		<p>Next we shall change two carbon atoms into hydrogen ones. To do so 
+we need to switch back to �Draw� mode and select �H� in �Elements� 
+panel. Then one needs to point cursor to the carbon atoms to be changed 
+and left-click:</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-changing-atoms.gif" alt="" width="662" height="761" border="0"></p>
+		<p>Now we need to add missing hydrogen atoms to the SIN residue. The 
+easiest way to do this is to go to the �Unit�-&gt;�Add H &amp; Build� 
+menu.</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-adding-h.gif" alt="" width="662" height="761" border="0"></p>
+		<p>Xleap will add more hydrogen atoms than we need however all extra 
+hydrogens could be easily deleted. So, our final structure looks like 
+this:</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-sin-final.gif" alt="" width="662" height="761" border="0"></p>
+		<p>Geometry is far from ideal however we shall optimize it using Gaussian.</p>
+		<p><font size="+1" face="monospace" color="red"><strong>savepdb sin <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin-for-resp.pdb">sin-for-resp.pdb</a></strong></font></p>
+		<p>We edit it to prepare input file for Gaussian:</p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">����� </span>1<span style="mso-spacerun:yes">� </span>C1<span style="mso-spacerun:yes">� </span>SIN<span style="mso-spacerun:yes">���� </span>1<span style="mso-spacerun:yes">����� </span>13.529<span style="mso-spacerun:yes">� </span>47.374<span style="mso-spacerun:yes">� </span>-0.405<span style="mso-spacerun:yes">� </span>1.00<span style="mso-spacerun:yes">� </span>0.00</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">����� </span>2<span style="mso-spacerun:yes">� </span>O1<span style="mso-spacerun:yes">� </span>SIN<span style="mso-spacerun:yes">���� </span>1<span style="mso-spacerun:yes">����� </span>12.629<span style="mso-spacerun:yes">� </span>47.356<span style="mso-spacerun:yes">� </span>-1.278<span style="mso-spacerun:yes">� </span>1.00<span style="mso-spacerun:yes">� </span>0.00</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">����� </span>3<span style="mso-spacerun:yes">� </span>O2<span style="mso-spacerun:yes">� </span>SIN<span style="mso-spacerun:yes">���� </span>1<span style="mso-spacerun:yes">����� </span>14.879<span style="mso-spacerun:yes">� </span>47.872<span style="mso-spacerun:yes">� </span>-0.578<span style="mso-spacerun:yes">� </span>1.00<span style="mso-spacerun:yes">� </span>0.00</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">����� </span>4<span style="mso-spacerun:yes">� </span>C2<span style="mso-spacerun:yes">� </span>SIN<span style="mso-spacerun:yes">���� </span>1<span style="mso-spacerun:yes">����� </span>13.079<span style="mso-spacerun:yes">� </span>46.708<span style="mso-spacerun:yes">�� </span>0.910<span style="mso-spacerun:yes">� </span>1.00<span style="mso-spacerun:yes">� </span>0.00</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">����� </span>5<span style="mso-spacerun:yes">� </span>C3<span style="mso-spacerun:yes">� </span>SIN<span style="mso-spacerun:yes">���� </span>1<span style="mso-spacerun:yes">����� </span>14.191<span style="mso-spacerun:yes">� </span>45.931<span style="mso-spacerun:yes">�� </span>1.666<span style="mso-spacerun:yes">� </span>1.00<span style="mso-spacerun:yes">� </span>0.00</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">����� </span>6<span style="mso-spacerun:yes">� </span>C4<span style="mso-spacerun:yes">� </span>SIN<span style="mso-spacerun:yes">��� </span><span style="mso-spacerun:yes">�</span>1<span style="mso-spacerun:yes">����� </span>13.679<span style="mso-spacerun:yes">� </span>45.298<span style="mso-spacerun:yes">�� </span>2.936<span style="mso-spacerun:yes">� </span>1.00<span style="mso-spacerun:yes">� </span>0.00</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">����� </span>7<span style="mso-spacerun:yes">� </span>O3<span style="mso-spacerun:yes">� </span>SIN<span style="mso-spacerun:yes">���� </span>1<span style="mso-spacerun:yes">����� </span>13.739<span style="mso-spacerun:yes">� </span>45.940<span style="mso-spacerun:yes">�� </span>3.995<span style="mso-spacerun:yes">� </span>1.00<span style="mso-spacerun:yes">� </span>0.00</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">����� </span>8 1H1<span style="mso-spacerun:yes">� </span>SIN<span style="mso-spacerun:yes">���� </span>1<span style="mso-spacerun:yes">����� </span>12.350<span style="mso-spacerun:yes">� </span>46.051<span style="mso-spacerun:yes">�� </span>0.719<span style="mso-spacerun:yes">� </span>1.00<span style="mso-spacerun:yes">� </span>0.00</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">����� </span>9 2H1<span style="mso-spacerun:yes">� </span>SIN<span style="mso-spacerun:yes">���� </span>1<span style="mso-spacerun:yes">����� </span>12.740<span style="mso-spacerun:yes">� </span>47.407<span style="mso-spacerun:yes">�� </span>1.539<span style="mso-spacerun:yes">� </span>1.00<span style="mso-spacerun:yes">� </span>0.00</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">���� </span>10 3H1<span style="mso-spacerun:yes">� </span>SIN<span style="mso-spacerun:yes">���� </span>1<span style="mso-spacerun:yes">����� </span>14.943<span style="mso-spacerun:yes">� </span>46.553<span style="mso-spacerun:yes">�� </span>1.885<span style="mso-spacerun:yes">� </span>1.00<span style="mso-spacerun:yes">� </span>0.00</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">���� </span>11<span style="mso-spacerun:yes">� </span>H14 SIN<span style="mso-spacerun:yes">���� </span>1<span style="mso-spacerun:yes">����� </span>14.531<span style="mso-spacerun:yes">� </span>45.189<span style="mso-spacerun:yes">�� </span>1.089<span style="mso-spacerun:yes">� </span>1.00<span style="mso-spacerun:yes">� </span>0.00</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">TER</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">���� </span>12<span style="mso-spacerun:yes">� </span>N<span style="mso-spacerun:yes">�� </span>VAL<span style="mso-spacerun:yes">���� </span>2<span style="mso-spacerun:yes">����� </span>12.810<span style="mso-spacerun:yes">� </span>44.301<span style="mso-spacerun:yes">�� </span>2.755<span style="mso-spacerun:yes">� </span>1.00<span style="mso-spacerun:yes">� </span>0.00</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">���� </span>13<span style="mso-spacerun:yes">� </span>H<span style="mso-spacerun:yes">�� </span>VAL<span style="mso-spacerun:yes">���� </span>2<span style="mso-spacerun:yes">����� </span>13.554<span style="mso-spacerun:yes">� </span>43.738<span style="mso-spacerun:yes">�� </span>2.367<span style="mso-spacerun:yes">� </span>1.00<span style="mso-spacerun:yes">� </span>0.00</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">���� </span>14<span style="mso-spacerun:yes">� </span>CA<span style="mso-spacerun:yes">� </span>VAL<span style="mso-spacerun:yes">���� </span>2<span style="mso-spacerun:yes">����� </span>12.041<span style="mso-spacerun:yes">� </span>43.758<span style="mso-spacerun:yes">�� </span>3.871<span style="mso-spacerun:yes">� </span>1.00<span style="mso-spacerun:yes">� </span>0.00</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">���� </span>15<span style="mso-spacerun:yes">� </span>HA<span style="mso-spacerun:yes">� </span>VAL<span style="mso-spacerun:yes">���� </span>2<span style="mso-spacerun:yes">����� </span>12.147<span style="mso-spacerun:yes">� </span>44.395<span style="mso-spacerun:yes">�� </span>4.749<span style="mso-spacerun:yes">� </span>1.00<span style="mso-spacerun:yes">� </span>0.00</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">���� </span>16<span style="mso-spacerun:yes">� </span>H18 VAL<span style="mso-spacerun:yes">���� </span>2<span style="mso-spacerun:yes">����� </span>12.374<span style="mso-spacerun:yes">� </span>42.841<span style="mso-spacerun:yes">�� </span>4.091<span style="mso-spacerun:yes">� </span>1.00<span style="mso-spacerun:yes">� </span>0.00</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ATOM<span style="mso-spacerun:yes">���� </span>17<span style="mso-spacerun:yes">� </span>H19 VAL<span style="mso-spacerun:yes">���� </span>2<span style="mso-spacerun:yes">����� </span>11.075<span style="mso-spacerun:yes">� </span>43.710<span style="mso-spacerun:yes">�� </span>3.618<span style="mso-spacerun:yes">� </span>1.00<span style="mso-spacerun:yes">� </span>0.00</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">TER</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">END</span></p>
+		<p>For the next step input is different for g03 and g09.</p>
+		<h3>For Gaussian g03</h3>
+		<p>And after editing (<a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin-for-resp-g03.gjf">sin-for-resp-g03.gjf</a>):</p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;"># Opt HF/6-31g* Pop=MK iop(6/33=2)</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;"><o:p>�</o:p></span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">SIN</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;"><o:p>�</o:p></span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">-1 1</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">C1 <span style="mso-spacerun:yes">��</span>13.529<span style="mso-spacerun:yes">� </span>47.374<span style="mso-spacerun:yes">� </span>-0.405</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">O1 <span style="mso-spacerun:yes">��</span>12.629<span style="mso-spacerun:yes">� </span>47.356<span style="mso-spacerun:yes">� </span>-1.278</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">O2 <span style="mso-spacerun:yes">��</span>14.879<span style="mso-spacerun:yes">� </span>47.872<span style="mso-spacerun:yes">� </span>-0.578</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">C2 <span style="mso-spacerun:yes">��</span>13.079<span style="mso-spacerun:yes">� </span>46.708<span style="mso-spacerun:yes">�� </span>0.910</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">C3 <span style="mso-spacerun:yes">��</span>14.191<span style="mso-spacerun:yes">� </span>45.931<span style="mso-spacerun:yes">�� </span>1.666</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">C4 <span style="mso-spacerun:yes">��</span>13.679<span style="mso-spacerun:yes">� </span>45.298<span style="mso-spacerun:yes">�� </span>2.936</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">O3 <span style="mso-spacerun:yes">��</span>13.739<span style="mso-spacerun:yes">� </span>45.940<span style="mso-spacerun:yes">�� </span>3.995</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">H11 <span style="mso-spacerun:yes">�</span>12.350<span style="mso-spacerun:yes">� </span>46.051<span style="mso-spacerun:yes">�� </span>0.719</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">H12 <span style="mso-spacerun:yes">�</span>12.740<span style="mso-spacerun:yes">� </span>47.407<span style="mso-spacerun:yes">�� </span>1.539</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">H13 <span style="mso-spacerun:yes">�</span>14.943<span style="mso-spacerun:yes">� </span>46.553<span style="mso-spacerun:yes">�� </span>1.885</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">H14<span style="mso-spacerun:yes">� </span>14.531<span style="mso-spacerun:yes">� </span>45.189<span style="mso-spacerun:yes">�� </span>1.089</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">N<span style="mso-spacerun:yes">� </span><span style="mso-spacerun:yes">��</span>12.810<span style="mso-spacerun:yes">� </span>44.301<span style="mso-spacerun:yes">�� </span>2.755</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">H<span style="mso-spacerun:yes">� </span><span style="mso-spacerun:yes">��</span>13.554<span style="mso-spacerun:yes">� </span>43.738<span style="mso-spacerun:yes">�� </span>2.367</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">C <span style="mso-spacerun:yes">�</span><span style="mso-spacerun:yes">��</span>12.041<span style="mso-spacerun:yes">� </span>43.758<span style="mso-spacerun:yes">�� </span>3.871</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">H <span style="mso-spacerun:yes">�</span><span style="mso-spacerun:yes">��</span>12.147 <span style="mso-spacerun:yes">�</span>44.395<span style="mso-spacerun:yes">�� </span>4.749</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">H18<span style="mso-spacerun:yes">� </span>12.374<span style="mso-spacerun:yes">� </span>42.841<span style="mso-spacerun:yes">�� </span>4.091</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">H19<span style="mso-spacerun:yes">� </span>11.075<span style="mso-spacerun:yes">� </span>43.710<span style="mso-spacerun:yes">�� </span>3.618</span></p>
+		<p>The meaning of the Gaussian options are as follows:</p>
+		<ul type="disc">
+			<li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l5 level1 lfo2;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">Opt</span>: We ask for minimization of our structure
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l5 level1 lfo2;tab-stops:list 36.0pt"><span style="font-size: 10.0pt;font-family:&quot;Courier New&quot;">HF/6-31g*</span>: We are using 6-31G* basis set
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l5 level1 lfo2;tab-stops:list 36.0pt"><span style="font-size: 10.0pt;font-family:&quot;Courier New&quot;">Pop=MK</span>:
+ Merz-Kollman atomic charges will be printed out (atomic charges are 
+fitted to the quantum-chemically generated electrostatic potential)
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l5 level1 lfo2;tab-stops:list 36.0pt"><span style="font-size: 10.0pt;font-family:&quot;Courier New&quot;">iop(6/33=2): </span><span class="NormalWebChar">coordinates of points along with the values of </span>quantum-chemically<span class="NormalWebChar"> calculated electrostatic potential in each of them will be printed out. This information will be used later by </span><span class="NormalWebChar"><span style="font-family:&quot;Courier New&quot;">antechamber</span> for generating the RESP atomic charges.</span>
+		</li></ul>
+		<p><o:p>�</o:p></p>
+		<p>Now we can run the Gaussian G09 program:</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>g03 &lt;<a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin-for-resp-g03.gjf">sin-for-resp-g03.gjf</a> &gt;<a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin-for-resp-g03.out">sin-for-resp-g03.out</a></strong></font></span></p>
+		<p>Since it requires about 20 minutes to run use <strong><font face="Courier New, Courier, Monaco, monospace"><a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/run-sin-g03.sh">run-sin-g03.sh</a></font></strong> on the PBS systems, i.e.</p>
+		<p><font size="+1" face="Courier New, Courier, Monaco, monospace"><strong>qsub run-sin-g03.sh</strong></font></p>
+		<p>We shall use<font face="monospace"> <strong>Antechamber</strong></font> to assign atom types to this molecule and also calculate a set of point RESP charges for us. <font face="monospace"><strong>Antechamber</strong></font> is the most important program within the set of <font face="monospace">Antechamber</font>
+ tools. It can perform many file conversions and can also assign atomic 
+charges and atom types. It will also generate a series of intermediate 
+files (all in capital letters).</p>
+		<p>Let's try using antechamber on our <span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong><a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin-for-resp-g03.out">sin-for-resp-g03.out</a></strong></font></span> file. To create the "prepin" file we require to define a new unit in leap we simply run the following command:</p>
+		<p><font size="+1" face="Courier New, Courier, Monaco, monospace"><strong>antechamber -i sin-for-resp-g03.out -fi gout -o <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin.prepin">sin.prepin</a> \</strong></font></p>
+		<p><font size="+1" face="Courier New, Courier, Monaco, monospace"><strong> -fo prepi -c resp -s 2 -rn SIN -at amber -nc -1</strong></font></p>
+		<p>Here the <span style="font-family:&quot;Courier New&quot;">-i <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin-for-resp.out">sin-for-resp-g03.out</a></span> specifies the name of the Gaussian output with information about quantum-chemically calculated potential around a molecule </p>
+		<p>The <span style="font-family:&quot;Courier New&quot;">-fi gout</span> tells <span style="font-family:&quot;Courier New&quot;">antechamber</span>
+ that this is a Gaussian output format file (we could easily have used 
+any number of other supported formats including PDB [pdb], Gaussian 
+Z-Matrix [gzmat], Gaussian Output [gout], MDL [mdl], amber Restart 
+[rst], Sybyl Mol2 [mol2]). </p>
+		<p>The <span style="font-family: &quot;Courier New&quot;">-o sin.prepin</span> specifies the name of our output file </p>
+		<p>The <span style="font-family:&quot;Courier New&quot;">-fo prepi</span> states that we want the output file to be of amber PREP format (this is an internal format supported by Leap). </p>
+		<p>The <span style="font-family:&quot;Courier New&quot;">-c resp</span> option tells antechamber to use the RESP charge model in order to calculate the atomic point charges </p>
+		<p>The <span style="font-family:&quot;Courier New&quot;">-s 2</span> 
+option defines the verbosity of the status information provided by 
+antechamber. In this case we have selected verbose output (2). </p>
+		<p><span style="font-family: &quot;Courier New&quot;">The �rn SIN </span>defines residue name SIN, </p>
+		<p><span style="font-family: &quot;Courier New&quot;">�at amber </span>defines atom types (AMBER in our case), and </p>
+		<p><span style="font-family:&quot;Courier New&quot;">�nc -1 </span><span style="mso-spacerun:yes">�</span>is a net molecular charge.</p>
+		<p>So, go ahead and run the above command. The screen output should be as follows:</p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;">Running: /apps/amber/12/bin/bondtype -j full -i ANTECHAMBER_BOND_TYPE.AC0 -o ANTECHAMBER_BOND_TYPE.AC -f ac</span></p>
+		<pre><font size="-2">Running: /apps/amber/12/bin/atomtype -i ANTECHAMBER_AC.AC0 -o ANTECHAMBER_AC.AC -p amber</font></pre>
+		<pre><font size="-2">Running: /apps/amber/12/bin/espgen -o ANTECHAMBER.ESP -i sin-for-resp-g03.out</font></pre>
+		<pre><font size="-2">Running: /apps/amber/12/bin/respgen -i ANTECHAMBER_RESP.AC -o ANTECHAMBER_RESP1.IN -f resp1 -e 1</font></pre>
+		<pre><font size="-2">Running: /apps/amber/12/bin/respgen -i ANTECHAMBER_RESP.AC -o ANTECHAMBER_RESP2.IN -f resp2 -e 1</font></pre>
+		<pre><font size="-2">Running: /apps/amber/12/bin/resp -O -i ANTECHAMBER_RESP1.IN -o ANTECHAMBER_RESP1.OUT -e ANTECHAMBER.ESP -t qout</font></pre>
+		<pre><font size="-2">Running: /apps/amber/12/bin/resp -O -i ANTECHAMBER_RESP2.IN -o ANTECHAMBER_RESP2.OUT -e ANTECHAMBER.ESP -q qout -t QOUT</font></pre>
+		<pre><font size="-2">Running: /apps/amber/12/bin/prepgen -i ANTECHAMBER_PREP.AC -f int -o sin.prepin -rn "SIN" -rf molecule.res
+</font></pre>
+		<h3>For Gaussian g09</h3>
+		<p>We need to use other options for Gaussian g03, here is input file, <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin-for-resp.gjf">sin-for-resp.gjf</a>:</p>
+		<pre><strong><font face="Courier New, Courier, Monaco, monospace"># Opt HF/6-31g* Pop=MK IOp(6/50=1)
+ 
+SIN
+ 
+-1 1
+C1   13.529  47.374  -0.405
+O1   12.629  47.356  -1.278
+O2   14.879  47.872  -0.578
+C2   13.079  46.708   0.910
+C3   14.191  45.931   1.666
+C4   13.679  45.298   2.936
+O3   13.739  45.940   3.995
+H11  12.350  46.051   0.719
+H12  12.740  47.407   1.539
+H13  14.943  46.553   1.885
+H14  14.531  45.189   1.089
+N    12.810  44.301   2.755
+H    13.554  43.738   2.367
+C    12.041  43.758   3.871
+H    12.147  44.395   4.749
+H18  12.374  42.841   4.091
+H19  11.075  43.710   3.618</font></strong></pre>
+		<pre><strong><font face="Courier New, Courier, Monaco, monospace">antechamber-ini.esp </font></strong></pre>
+		<pre><strong><font face="Courier New, Courier, Monaco, monospace">antechamber.esp 
+</font></strong></pre>
+		<p></p>
+		<p>So, here we use other <strong>iop</strong> option: <strong>IOp(6/50=1)</strong></p>
+		<p>Also we need to specify file name(s) where g09 will write data in 
+the so-called  Gaussian 09 ESP file. Here, we use two file names,<font face="Courier New, Courier, Monaco, monospace"> <strong><a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/antechamber-ini.esp">antechamber-ini.esp</a></strong> </font>and<font face="Courier New, Courier, Monaco, monospace"> <strong><a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/ANTECHAMBER.ESP">antechamber.esp</a></strong>,</font> because the first one will be used for the initial structure while the second one - for the optimized structure.</p>
+		<p><font size="+1" face="Courier New, Courier, Monaco, monospace"><strong>g09 &lt; <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin-for-resp.gjf">sin-for-resp.gjf</a> &gt; <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin-for-resp-g09.out">sin-for-resp-g09.out</a><br>
+				</strong></font></p>
+		<p>Or use a script, <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/run-sin-g09.sh"><strong>run-sin-g09.sh</strong></a>, for the PBS�system:</p>
+		<p><font size="+1" face="Courier New, Courier, Monaco, monospace"><strong>qsub <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/run-sin-g09.sh">run-sin-g09.sh</a></strong></font></p>
+		<p></p>
+		<div class="Section1">
+			This time we use so-called Gaussian 09 ESP file, <font face="Courier New, Courier, Monaco, monospace"><strong><a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/ANTECHAMBER.ESP">antechamber.esp</a></strong></font>, as input file for antechamber:
+			<p><font size="+1" face="Courier New, Courier, Monaco, monospace"><strong>antechamber -i <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/ANTECHAMBER.ESP">antechamber.esp</a> -fi gesp -o <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin.prepin">sin.prepin</a> \</strong></font></p>
+			<p><font size="+1" face="Courier New, Courier, Monaco, monospace"><strong>            -fo prepi -c resp -s 2 -rn SIN -at amber -nc -1</strong></font><br>
+			</p>
+			<div class="Section1">
+				<p>Here the <span style="font-family:&quot;Courier New&quot;"><strong>-i antechamber.esp</strong></span>
+ specifies the name of the Gaussian ESP (Electrostatic Potential) file 
+with information about quantum-chemically calculated potential around a 
+molecule</p>
+				<p>The <span style="font-family:&quot;Courier New&quot;">-fi gesp</span> tells <span style="font-family:&quot;Courier New&quot;">antechamber</span>
+ that this is Gaussian ESP format file (we could easily have used any 
+number of other supported formats including PDB [pdb], Gaussian Z-Matrix
+ [gzmat], Gaussian Output [gout], MDL [mdl], amber Restart [rst], Sybyl 
+Mol2 [mol2]).</p>
+				<p>The <span style="font-family: &quot;Courier New&quot;">-o sin.prepin</span> specifies the name of our output file</p>
+				<p>The <span style="font-family:&quot;Courier New&quot;">-fo prepi</span> states that we want the output file to be of amber PREP format (this is an internal format supported by Leap).</p>
+				<p>The <span style="font-family:&quot;Courier New&quot;">-c resp</span> option tells antechamber to use the RESP charge model in order to calculate the atomic point charges</p>
+				<p>The <span style="font-family:&quot;Courier New&quot;">-s 2</span>
+ option defines the verbosity of the status information provided by 
+antechamber. In this case we have selected verbose output (2).</p>
+				<p><span style="font-family: &quot;Courier New&quot;">The �rn SIN </span>defines residue name SIN,</p>
+				<p><span style="font-family: &quot;Courier New&quot;">�at amber </span>defines atom types (AMBER in our case), and</p>
+				<p><span style="font-family:&quot;Courier New&quot;">�nc -1 </span><span style="mso-spacerun:yes">�</span>is a net molecular charge.</p>
+			</div>
+		</div>
+		<h3>Generating parameters</h3>
+		<p>You should also get a whole series of files written to your directory:</p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;">1cgh-mod2.pdb<span style="mso-spacerun:yes">������������ </span><font color="red">ANTECHAMBER_RESP1.OUT</font><span style="mso-spacerun:yes">������ </span>punch</span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;">1cgh-modified.pdb<span style="mso-spacerun:yes">�������� </span><font color="red">ANTECHAMBER_RESP2.IN</font><span style="mso-spacerun:yes">������� </span>qout</span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;">1CGH.pdb<span style="mso-spacerun:yes">����������������� </span><font color="red">ANTECHAMBER_RESP2.OUT</font><span style="mso-spacerun:yes">������ </span><font color="red">QOUT</font></span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;"><font color="red">ANTECHAMBER_AC.AC</font><span style="mso-spacerun:yes">�������� </span><font color="red">ANTECHAMBER_RESP.AC</font><span style="mso-spacerun:yes">�������� </span>sep-and-pph-for-resp-xleap.pdb</span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;"><font color="red">ANTECHAMBER_AC.AC0</font><span style="mso-spacerun:yes">������� </span><font color="red">ATOMTYPE.INF</font><span style="mso-spacerun:yes">��������������� </span>sin-for-resp.out</span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;"><font color="red">ANTECHAMBER_BOND_TYPE.AC</font><span style="mso-spacerun:yes">� </span>esout<span style="mso-spacerun:yes">���������������� </span><span style="mso-spacerun:yes">������</span>sin-for-resp.pdb</span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;"><font color="red">ANTECHAMBER.ESP</font><span style="mso-spacerun:yes">���������� </span>leap.log<span style="mso-spacerun:yes">������������������� </span>sin.prepin</span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;"><font color="red">ANTECHAMBER_PREP.AC</font><span style="mso-spacerun:yes">������ </span><font color="red">NEWPDB.PDB</font><span style="mso-spacerun:yes">����������������� </span>sin-val.pdb</span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;"><font color="red">ANTECHAMBER_PREP.AC0</font><span style="mso-spacerun:yes">����� </span>pph-and-sep-in-protein.pdb</span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;"><font color="red">ANTECHAMBER_RESP1.IN</font><span style="mso-spacerun:yes">����� </span><font color="red">PREP.INF</font></span></p>
+		<p>The files in CAPITALS are all intermediate files used by 
+antechamber and are not required here. You can safely delete them. These
+ files are not deleted by default since they may be of interest if 
+things didn't work correctly.</p>
+		<p>The file that we are really interested in, and the reason we ran Antechamber in the first place, is the <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin.prepin">sin.prepin</a>
+ file. This contains the definition of our SIN residue including all of 
+the charges and atom types that we will load into Leap to when creating 
+our prmtop and inpcrd files.</p>
+		<p>While the most likely combinations of bond, angle and dihedral 
+parameters are defined in this file it is possible that our molecule 
+might contain combinations of atom types for bonds, angles or dihedrals 
+that have not been parameterised. If this is the case then we will have 
+to specify any missing parameters before we can create our prmtop and 
+inpcrd files in Leap.</p>
+		<p>We can use the utility <span style="font-family:&quot;Courier New&quot;"><strong>parmchk</strong></span> to test if all the parameters we require are available.</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><strong><font size="+1">parmchk -i <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin.prepin">sin.prepin</a> -f prepi -o <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin.frcmod">sin.frcmod</a></font></strong></span></p>
+		<p>Run this command now and it will produce a file called <span style="font-family:&quot;Courier New&quot;"><a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin.frcmod">sin.frcmod</a></span>.
+ This is a parameter file that can be loaded into Leap in order to add 
+missing parameters. Here it will contain all of the missing parameters. 
+If it can <span style="font-family:&quot;Courier New&quot;">antechamber</span>
+ will fill in these missing parameters by analogy to a similar 
+parameter. You should check these parameters carefully before running a 
+simulation. If <span style="font-family:&quot;Courier New&quot;">antechamber</span>
+ can't empirically calculate a value or has no analogy it will either 
+add a default value that it thinks is reasonable or alternatively insert
+ a place holder (with zeros everywhere) and the comment "<span style="font-family: &quot;Courier New&quot;">ATTN: needs revision</span>". In this case you will have to manually parameterize this yourself. </p>
+		<p>For the purposes of this tutorial we shall assume that the 
+parameters Antechamber has suggested for us are acceptable. Ideally you 
+should really test these parameters (by comparing to <i>ab initio</i> calculations for example) to ensure they are reasonable.</p>
+		<p>To complete creation of a SIN residue we shall load <span style="font-family: &quot;Courier New&quot;"><a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin.prepin">sin.prepin</a></span>
+ file into Xleap, delete extra atoms which simulate an adjacent peptide 
+bond, and save resulting structure as an Amber library file.</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>loadamberprep sin.prepin</strong></font></span></p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>list</strong></font></span></p>
+		<p>You should see a new unit called SIN.</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/xleap-load-sin-prepin.gif" alt="" width="808" height="472" border="0"></p>
+		<p><span style="font-family:&quot;Courier New&quot;"><strong><font size="+1">edit SIN</font></strong></span></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-sin-prepin.gif" alt="" width="662" height="761" border="0"></p>
+		<p>Delete NMe group:</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-sin.gif" alt="" width="662" height="761" border="0"></p>
+		<p>After deleting NMe group we should ensure that our residue has an 
+integral total charge -1. Charge command will tell us about current 
+total charge:</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><strong><font size="+1">charge SIN</font></strong></span></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/xleap-sin-charge.gif" alt="" width="339" height="81" border="0"></p>
+		<p>So, we need to add -0.0138 charge. To edit atoms one needs to select them first (left-click and drag a mouse):</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-sin-select-all.gif" alt="" width="662" height="761" border="0"></p>
+		<p>Then select from the Menu �Edit�-&gt;�Edit selected atoms�:</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-sin-edit-selected.gif" alt="" width="662" height="761" border="0"></p>
+		<p>We shall see a table:</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/table-sin.gif" alt="" width="904" height="416" border="0"></p>
+		<p>Left column contains atom names. To see a correspondence between 
+atom names and 3D structure we shall label atoms in the Xleap unit 
+editor:</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-sin-labeling-atoms.gif" alt="" width="662" height="761" border="0"></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-sin-labels.gif" alt="" width="662" height="761" border="0"></p>
+		<p>To ensure that atom names in SIN residue are the same as those in 
+our original pdb file we shall load sin-val.pdb file prepared 
+previously:</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><strong><font size="+1">res = loadpdb sin-val.pdb</font></strong></span></p>
+		<p><span style="font-family:&quot;Courier New&quot;"><strong><font size="+1">edit res</font></strong></span></p>
+		<p>We shall see the second window of unit editor:</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-sin-val-labeled.gif" alt="" width="662" height="761" border="0"></p>
+		<p>In this particular case atoms in both structures have the same atom
+ names which is not always the case because during preparation of input 
+file for Gaussian atom name information could be lost.</p>
+		<p>So, in the table we shall add -0.0138 charge to the C4 atom to have a total charge on the residue -1:</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/table-sin-change-charge.gif" alt="" width="904" height="416" border="0"></p>
+		<p>Next we need to save our changes using menu �Table�-&gt;�Save and quit�:</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/table-sin-save-changes.gif" alt="" width="904" height="416" border="0"></p>
+		<p class="MsoNormal">The last thing we need to do before we can save a
+ library file for our completed unit is to tell xleap what is the head 
+atom for this unit and what is the tail atom. This information is used 
+in order to connect the protein back bone. E.g. if we type </p>
+		<p class="MsoNormal"><strong><font size="+1"><span style="font-family:&quot;Courier New&quot;">desc SIN</span> </font></strong></p>
+		<p class="MsoNormal">we will see that there is no tail defined and a wrong head:</p>
+		<p class="MsoNormal" align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/xleap-sin-desc.gif" alt="" width="288" height="93" border="0"></p>
+		<p>So we need to specify these for our SIN unit using <font face="monospace"><strong>set</strong></font> command. Type:</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><strong><font size="+1">set SIN head null<br>
+						set SIN tail SIN.SIN.C4</font></strong></span></p>
+		<p>And that's us done. Now we can save the completed library file using <strong><font face="monospace">saveoff</font></strong> command:</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><strong><font size="+1">saveoff SIN <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin.lib">sin.lib</a></font></strong></span></p>
+		<p>As a final check we shall load again a fragment of an original pdb file, <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin-val.pdb">sin-val.pdb</a>, with SIN residue:</p>
+		<p><font size="+1" face="monospace"><strong>res = loadpdb sin-val.pdb</strong></font></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/xleap-sin-final-check.gif" alt="" width="575" height="126" border="0"></p>
+		<p>There are no errors reported�</p>
+		<p><o:p>�</o:p></p>
+		<p><o:p>�</o:p></p>
+		<p><b><i>Creating SEP and PPH units</i></b></p>
+		<p>To create library files for SIP and PPH units we shall start in the same manner as for SIN unit: we simply cut it out of the <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-mod2.pdb">1cgh-mod2.pdb</a> file and save it as its own pdb file.</p>
+		<p>So, we cut out SEP (former Ser-195), PPH and adjacent amino-acids, Val, Glu, Gly: <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/pph-and-sep-in-protein.pdb">pph-and-sep-in-protein.pdb</a>. </p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/pph-and-sep-in-protein.jpg" alt="" width="733" height="540" border="0"></p>
+		<p>Our aim is to prepare a system for calculating RESP charges using Gaussian.</p>
+		<p>We load it in into Xleap and start editing</p>
+		<p><font size="+1" face="monospace"><strong>res=loadpdb pph-and-sep-in-protein.pdb</strong></font></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/xleap-load-sep-and-pph-in-protein.gif" alt="" width="808" height="613" border="0"></p>
+		<p align="left"><font size="+1" face="monospace"><strong>edit res</strong></font></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-sep-in-protein.gif" alt="" width="662" height="761" border="0"></p>
+		<p>We shall create missing bonds (select "Draw" in "Manipulation" panel):</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-sep-add-bonds.gif" alt="" width="974" height="892" border="0"></p>
+		<p>Delete extra atoms (select "Erase" in "Manipulation" panel):</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-sep-del-atoms.gif" alt="" width="794" height="875" border="0"></p>
+		<p>And, finally, add missing protons. Our final structure looks like this (<a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/pph-for-resp.pdb">pph-for-resp.pdb</a>):</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/PPH-and-SEP-for-resp.gif" alt="" width="1011" height="850" border="0"></p>
+		<p>Input file for Gaussian: <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/pph-for-resp.gjf">pph-for-resp.gjf</a></p>
+		<p><span style="font-family:&quot;Courier New&quot;">g03 &lt;<a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/pph-for-resp.gjf">pph-for-resp.gjf</a> &gt;<a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/pph-for-resp.log">pph-for-resp.log</a></span></p>
+		<p>Running antechamber:</p>
+		<p><span style="font-family:&quot;Courier New&quot;">$AMBERHOME/exe/antechamber -i <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/pph-for-resp.log">pph-for-resp.log</a><span style="mso-spacerun:yes">� </span>-fi gout -o <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/pph.prepin">pph.prepin</a> -fo prepi -c resp -s 2 -rn PPH -at amber -nc -1</span></p>
+		<p>Its output:</p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;">Running: /opt/amber8/exe/bondtype -i ANTECHAMBER_BOND_TYPE.AC -o ANTECHAMBER_BOND_TYPE.AC -f ac -j full</span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;">Bond types are assigned for valence state 11 with penalty of 2</span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;">Running: /opt/amber8/exe/atomtype -i ANTECHAMBER_AC.AC0 -o ANTECHAMBER_AC.AC -p amber</span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;">Running: /opt/amber8/exe/espgen -o ANTECHAMBER.ESP -i pph-for-resp.log</span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;">Running: /opt/amber8/exe/respgen -i ANTECHAMBER_RESP.AC -o ANTECHAMBER_RESP1.IN -f resp1</span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;">Running: /opt/amber8/exe/respgen -i ANTECHAMBER_RESP.AC -o ANTECHAMBER_RESP2.IN -f resp2</span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;">Running: resp -O -i ANTECHAMBER_RESP1.IN -o ANTECHAMBER_RESP1.OUT -e ANTECHAMBER.ESP -t qout</span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;"><span style="mso-spacerun:yes">�</span>Amber8 Module: resp </span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;">resp -O -i ANTECHAMBER_RESP2.IN -o ANTECHAMBER_RESP2.OUT -e ANTECHAMBER.ESP -q qout -t QOUT</span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;"><span style="mso-spacerun:yes">�</span>Amber8 Module: resp </span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;">Running: /opt/amber8/exe/atomtype -i ANTECHAMBER_PREP.AC0 -o ANTECHAMBER_PREP.AC -p amber</span></p>
+		<p><span style="font-size:8.0pt;font-family:&quot;Courier New&quot;">Running: /opt/amber8/exe/prepgen -i ANTECHAMBER_PREP.AC -f int -o pph.prepin -rn "PPH" -rf molecule.res</span></p>
+		<p>We can use the utility <span style="font-family:&quot;Courier New&quot;">parmchk</span> to test if all the parameters we require are available.</p>
+		<p><span style="font-family:&quot;Courier New&quot;">$AMBERHOME/exe/parmchk -i <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/pph.prepin">pph.prepin</a> -f prepi -o <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/pph.frcmod">pph.frcmod</a></span> </p>
+		<p>Run this command now and it will produce a file called <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/pph.frcmod">pph.frcmod</a>. This is a parameter file that can be loaded into Leap in order to add missing parameters.</p>
+		<p>Load pph.prepin file into Xleap, delete extra atoms which simulate 
+an adjacent peptide bond, and save resulting structure as an Amber 
+library file.</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>loadamberprep <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/pph.prepin">pph.prepin</a></strong></font></span></p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>edit PPH</strong></font></span></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-pph.gif" alt="" width="662" height="761" border="0"></p>
+		<p>Delete atoms mimicking peptide bonds (select "Erase" in "Manipulation" panel):</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-pph-no-caps.gif" alt="" width="662" height="761" border="0"></p>
+		<p>Count a total charge</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>charge PPH</strong></font></span></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/xleap-pph-total-charge.gif" alt="" width="322" height="81" border="0"></p>
+		<p>So, we need to add a charge -0.0259 to the residue. We shall add it to the Phosphorus atom:</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/table-pph.gif" alt="" width="904" height="816" border="0"></p>
+		<p>Since our current unit PPH contains two residues PPH and SEP we shall split it into two:</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>SEP = copy PPH</strong></font></span></p>
+		<p>This command creates a copy of PPH so that we can edit separately PPH and SEP.</p>
+		<p>Start editing from �sep� and delete all extra atoms:</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>edit SEP</strong></font></span></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-sep.gif" alt="" width="662" height="761" border="0"></p>
+		<p>A problem is that atom names in our SEP residue do not correspond to those in the original pdb. We shall fix it:</p>
+		<p>We shall name unit and residue as �SEP�</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>sepname = �SEP�</strong></font></span></p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>set SEP name sepname</strong></font></span></p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>set SEP.PPH name sepname</strong></font></span></p>
+		<p>A final touch will be in defining residue�s head and tail atoms</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>set SEP head SEP.SEP.N</strong></font></span></p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>set SEP tail SEP.SEP.C</strong></font></span></p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>set SEP.SEP restype protein</strong></font></span></p>
+		<p>Finally we save it as a library file:</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>saveoff SEP <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sep.lib">sep.lib</a></strong></font></span></p>
+		<p><o:p>�</o:p></p>
+		<h3>Creating PPH residue</h3>
+		<p>Start editing �PPH� and delete all extra atoms:</p>
+		<p><span style="font-family:&quot;Courier New&quot;">edit PPH</span></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-pph-no-extra.gif" alt="" width="662" height="761" border="0"></p>
+		<p>Unfortunately, during Gaussian calculations information about atom 
+names had been lost, so we need to ensure that our PPH residue has the 
+same atom names as PPH in the original pdb file. To make our task easier
+ we shall download file <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/pph-and-sep-in-protein.pdb">pph-and-sep-in-protein.pdb</a></p>
+		<p><span style="font-family:&quot;Courier New&quot;">test = loadpdb <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/pph-and-sep-in-protein.pdb">pph-and-sep-in-protein.pdb</a></span></p>
+		<p><span style="font-family:&quot;Courier New&quot;">edit test</span></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-pph-original.gif" alt="" width="662" height="761" border="0"></p>
+		<p>Now we can easily rename atoms in the PPH:</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/table-pph-renamed.gif" alt="" width="904" height="616" border="0"></p>
+		<p>As a final touch we shall define head and tail atoms:</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>set PPH head PPH.PPH.N</strong></font></span></p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>set PPH tail null</strong></font></span></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/xleap-pph-head.gif" alt="" width="335" height="142" border="0"></p>
+		<p>and save it as library file:</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>saveoff PPH <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/pph.lib">pph.lib</a></strong></font></span></p>
+		<p><o:p>�</o:p></p>
+		<p>We quit from Xleap</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>quit</strong></font></span></p>
+		<p>and restart it again</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>$AMBERHOME/exe/xleap -s -f $AMBERHOME/dat/leap/cmd/leaprc.ff03</strong></font></span></p>
+		<p>Before loading our pdb file we shall load library files for three residues, SIN, SEP, PPH, and parameter files, <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/sin.frcmod">sin.frcmod</a> and <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/pph.frcmod">pph.frcmod</a>:</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>loadoff sin.lib</strong></font></span></p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>loadoff sep.lib</strong></font></span></p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>loadoff pph.lib</strong></font></span></p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>loadamberparams pph.frcmod</strong></font></span></p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>loadamberparams sin.frcmod</strong></font></span></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/xleap-load-all.gif" alt="" width="808" height="472" border="0"></p>
+		<p>Now we can try to load pdb file, <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-mod2.pdb">1cgh-mod2.pdb</a>:</p>
+		<p><font size="+1"><strong>1cgh = loadpdb 1cgh-mod2.pdb</strong></font></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/xleap-load-1cgh.gif" alt="" width="808" height="472" border="0"></p>
+		<p>Voila, now there are no errors!</p>
+		<p>As a final touch we should add three S-S bonds between Cys residues as well as a covalent bond between PPH and SEP using <font face="monospace"><strong>bond</strong></font> command.</p>
+		<p style="tab-stops:36.0pt"><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>bond 1cgh.29.SG 1cgh.45.SG</strong></font></span></p>
+		<p style="tab-stops:36.0pt"><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>bond 1cgh.122.SG 1cgh.187.SG</strong></font></span></p>
+		<p style="tab-stops:36.0pt"><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>bond 1cgh.152.SG 1cgh.166.SG</strong></font></span></p>
+		<p style="tab-stops:36.0pt"><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>bond 1cgh.181.OG 1cgh.228.P</strong></font></span></p>
+		<p>We save protein in library file</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>saveoff 1cgh <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh.lib">1cgh.lib</a></strong></font></span></p>
+		<p><o:p>�</o:p></p>
+		<h3>Preparing input files for Minimisation and MD (in implicit solvent)</h3>
+		<p>We can now go ahead and solvate our system in a truncated octahedral box of TIP3P water.</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>solvateoct 1cgh TIP3PBOX 12</strong></font></span></p>
+		<p>The next thing we need to do is to add counter ions. Before we 
+issue the "addions" command, we need to figure out whether our system is
+ positively or negatively charged.<span style="mso-spacerun:yes">� </span>If
+ it is positively charged, we will want to add negatively charged Cl- 
+ions to counter it and if it is negatively charged, then we'll add Na+ 
+to counter it. To calculate the charge of our system, we can use the 
+command "charge" or �check� (see above):</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><strong><font size="+1">charge 1cgh</font></strong></span></p>
+		<p>Next we charge neutralise our system since it currently has a charge of +27 (<span style="font-family:&quot;Courier New&quot;;mso-bidi-font-family:&quot;Times New Roman&quot;">check 1cgh</span>). We shall therefore add a total of 27 Cl- ions.</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>addions 1cgh Cl- 27</strong></font></span></p>
+		<p>Saving parameters:</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><strong><font size="+1">saveamberparm 1cgh <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-water-box.top">1cgh-water-box.top</a> <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-water-box.crd">1cgh-water-box.crd</a></font></strong></span></p>
+		<p>The resulting topology file, <span style="font-family:&quot;Courier New&quot;"><a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-water-box.top">1cgh-water-box.top</a> </span>and file with coordinates <span style="font-family:&quot;Courier New&quot;"><a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-water-box.crd">1cgh-water-box.crd</a></span> are quite large.</p>
+		<p>We can save the resulted structure in the pdb file to be viewed later with a more sophisticated viewing program available</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>savepdb 1cgh <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-water-box.pdb">1cgh-water-box.pdb</a></strong></font></span></p>
+		<p>We can have a look at our system in Xleap:</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><font size="+1"><strong>edit 1cgh</strong></font></span></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/unit-editor-with-water.gif" alt="" width="662" height="761" border="0"></p>
+		<p><o:p>�</o:p></p>
+		<h2>Running Minimisation and MD (in explicit solvent)</h2>
+		<p>We shall run our simulations with the explicit solvent. For this 
+section of the tutorial we shall be using the prmtop and inpcrd files (<a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-water-box.top">1cgh-water-box.top</a> and <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-water-box.crd">1cgh-water-box.crd</a>, correspondingly) we created previously.</p>
+		<h3>Minimisation Stage 1 - Holding the water and counter-ions fixed</h3>
+		<p><span style="mso-tab-count:1">����������� </span>Our minimization 
+procedure will consist of a two stage approach. In the first stage we 
+will keep the protein fixed and just minimize the positions of the 
+counter-ions and water molecules. Then in the second stage we will 
+minimize the entire system.</p>
+		<p><span style="mso-tab-count:1">����������� </span>There are two options for keeping the protein atoms fixed during the initial minimization.</p>
+		<p><span style="mso-tab-count:1">����������� </span>One method is to use the "<span style="font-family:&quot;Courier New&quot;">BELLY</span>"
+ option in which all the selected atoms have the forces on them zeroed 
+at each step. This results in what is essentially a partial 
+minimization. This method used to be the favoured method but it can, 
+especially if used with constant pressure periodic boundary simulations,
+ lead to instabilities and strange artefacts. As a result of this it is 
+no longer the suggested method.</p>
+		<p><span style="mso-tab-count:1">����������� </span>Instead we shall 
+use "positional restraints" on each of the protein atoms to keep them 
+essentially fixed in the same position. Such restraints work by 
+specifying a reference structure, in this case our starting structure, 
+and then restraining the selected atoms to conform to this structure via
+ the use of a force constant. This can be visualized as basically 
+attaching a spring to each of the solute atoms that connects it to its 
+initial position. Moving the atom from this position results in a force 
+which acts to restore it to the initial position. By varying the 
+magnitude of the force constant so the effect can be increased or 
+decreased. This can be especially useful with structures based on 
+homology models which may be a long way from equilibrium and so require a
+ number of stages of minimization / MD with the force constant being 
+reduced each time.</p>
+		<p>Here is the input file we shall use for our initial minimization of solvent and ions:</p>
+		<pre>1cgh: initial minimization of solvent and ions</pre>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;"><span style="mso-spacerun:yes">�</span>&amp;cntrl</span></p>
+		<pre><span style="mso-spacerun:yes">���� </span>imin<span style="mso-spacerun:yes">�� </span>= 1,</pre>
+		<pre><span style="mso-spacerun:yes">� </span><span style="mso-spacerun:yes">��</span><span style="mso-spacerun:yes">�</span>maxcyc = 500,</pre>
+		<pre><span style="mso-spacerun:yes">� </span><span style="mso-spacerun:yes">���</span>ncyc<span style="mso-spacerun:yes">�� </span>= 250,</pre>
+		<pre><span style="mso-spacerun:yes">�� </span><span style="mso-spacerun:yes">��</span>ntb<span style="mso-spacerun:yes">��� </span>= 1,</pre>
+		<pre><span style="mso-spacerun:yes">�� </span><span style="mso-spacerun:yes">��</span>ntr<span style="mso-spacerun:yes">��� </span>= 1,</pre>
+		<pre><span style="mso-spacerun:yes">�� </span><span style="mso-spacerun:yes">��</span>cut<span style="mso-spacerun:yes">��� </span>= 10</pre>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;"><span style="mso-spacerun:yes">�</span>&amp;end</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">Hold the protein fixed</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">100.0</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">RES 1 228</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">END</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">END</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;"><o:p>�</o:p></span></p>
+		<p>The meaning of each of the terms are as follows:</p>
+		<ul type="disc">
+			<li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l3 level1 lfo3;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">IMIN = 1</span>: Minimization is turned on (no MD)
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l3 level1 lfo3;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">MAXCYC = 500</span>: Conduct a total of 500 steps of minimization.
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l3 level1 lfo3;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">NCYC = 250</span>:
+ Initially do 250 steps of steepest descent minimization followed by 500
+ steps (MAXCYC - NCYC) steps of conjugate gradient minimization.
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l3 level1 lfo3;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">NTB = 1</span>: Use constant volume periodic boundaries (PME is always "on" with AMBER 8 when NTB&gt;0).
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l3 level1 lfo3;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">CUT = 10</span>: Use a cutoff of 10 angstroms.
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l3 level1 lfo3;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">NTR = 1</span>:
+ Use position restraints based on the GROUP input given in the input 
+file. GROUP input is described in detail in the appendix of the user's 
+manual. In this example, we use a force constant of 100 kcal mol<sup>-1</sup> angstrom<sup>-2</sup>
+ and restrain residues 1 through 228 (the protein and inhibitor). This 
+means that the water and counter-ions are free to move. The GROUP input 
+is the last 5 lines of the input file:
+		</li></ul>
+		<p><span style="font-family:&quot;Courier New&quot;">Hold the protein fixed<br>
+				100.0<br>
+				RES 1 228<br>
+				END<br>
+				END</span></p>
+		<p><o:p>�</o:p></p>
+		<p><o:p>�</o:p></p>
+		<p><o:p>�</o:p></p>
+		<p><o:p>�</o:p></p>
+		<p align="center"><o:p>�<img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/sander-pos-restr.gif" alt="" width="670" height="551" border="0"></o:p></p>
+		<p><o:p>�</o:p></p>
+		<p>Command to run sander:</p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">$AMBERHOME/exe/sander -O -i <span style="color:red"><a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-hold-protein.in"><span style="color:red">1cgh-hold-protein.in</span></a></span> \</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;"><span style="mso-tab-count: 1">����� </span>-o <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-hold-protein.out">1cgh-hold-protein.out</a> -c <span style="color:red"><a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-water-box.crd"><span style="color:red">1cgh-water-box.crd</span></a></span> \</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;"><span style="mso-tab-count: 1">����� </span>-p <span style="color:red"><a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-water-box.top"><span style="color:red">1cgh-water-box.top</span></a></span> -r <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-hold-protein.rst">1cgh-hold-protein.rst</a> \</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;"><span style="mso-tab-count: 1">����� </span>-ref <span style="color:red"><a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-water-box.crd"><span style="color:red">1cgh-water-box.crd</span></a></span> </span></p>
+		<p>Input files: <span style="font-size:10.0pt;font-family:&quot;Courier New&quot;; color:red"><a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-hold-protein.in"><span style="color:red">1cgh-hold-protein.in</span></a>, <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-water-box.crd"><span style="color:red">1cgh-water-box.crd</span></a>, <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-water-box.top"><span style="color:red">1cgh-water-box.top</span></a></span></p>
+		<p>Output Files: <span style="font-size:10.0pt;font-family:&quot;Courier New&quot;"><a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-hold-protein.out">1cgh-hold-protein.out</a>, <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-hold-protein.rst">1cgh-hold-protein.rst</a></span></p>
+		<p><span style="mso-tab-count:1">����������� </span>Take a look at the
+ output file from this job. You should notice that there is initially a 
+rather high van-der-Waals (VDWAALS and 1-4 VDW) energy which represents 
+bad contacts in both the water and protein. You should also see that the
+ electrostatic energy (EEL) drops very rapidly. The RESTRAINT energy 
+represents the effect of the harmonic restraints we have imposed. It 
+rises rapidly but then levels off.</p>
+		<p>To have a quick look at the structure, in order to ensure it still sensible, before proceeding:</p>
+		<p><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">ambpdb -p 1cgh-water-box.top<span style="mso-spacerun:yes">� </span>&lt; 1cgh-hold-protein.rst<span style="mso-spacerun:yes">� </span>&gt; <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-hold-protein.pdb">1cgh-hold-protein.pdb</a><span style="color:green"> </span></span></p>
+		<p><o:p>�</o:p></p>
+		<h3>Minimisation Stage 2 - Minimising the entire system</h3>
+		<p>Now we have minimized the water and ions the next stage of our 
+minimization is to minimize the entire system. In this case we will run 
+500 steps of minimization without the restraints this time. Here is the 
+input file:</p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">Entire system minimization</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;"><span style="mso-spacerun:yes">�</span>&amp;cntrl</span></p>
+		<pre><span style="mso-spacerun:yes">���� </span>imin<span style="mso-spacerun:yes">�� </span>= 1,</pre>
+		<pre><span style="mso-spacerun:yes">� </span><span style="mso-spacerun:yes">�</span><span style="mso-spacerun:yes">��</span>maxcyc = 1000,</pre>
+		<pre><span style="mso-spacerun:yes">� </span><span style="mso-spacerun:yes">�</span><span style="mso-spacerun:yes">�</span><span style="mso-spacerun:yes">�</span>ncyc<span style="mso-spacerun:yes">�� </span>= 500,</pre>
+		<pre><span style="mso-spacerun:yes">�� </span><span style="mso-spacerun:yes">��</span>ntb<span style="mso-spacerun:yes">��� </span>= 1,</pre>
+		<pre><span style="mso-spacerun:yes">�� </span><span style="mso-spacerun:yes">��</span>ntr<span style="mso-spacerun:yes">��� </span>= 0,</pre>
+		<pre><span style="mso-spacerun:yes">�� </span><span style="mso-spacerun:yes">��</span>cut<span style="mso-spacerun:yes">��� </span>= 10</pre>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;"><span style="mso-spacerun:yes">�</span>&amp;end</span></p>
+		<p class="MsoNormal" style="mso-layout-grid-align:none;text-autospace:none"><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;"><o:p>�</o:p></span></p>
+		<p>Note, choosing the number of minimization steps to run is a bit of a
+ black art. Running too few can lead to instabilities when you start 
+running MD. Running too many will not do any real harm since we will 
+just get ever closer to the nearest local minima. It will, however, 
+waste cpu time. Since minimization is generally very quick with respect 
+to the molecular dynamics it is often a good idea to run more 
+minimization steps than really necessary. Here, 500 should be enough.</p>
+		<p><span style="mso-tab-count:1">����������� </span>We run this using the following command. Note, we use the <span style="font-size:10.0pt;font-family: &quot;Courier New&quot;">1cgh-hold-protein.rst </span>file
+ from the previous run, which contains the last structure from the first
+ stage of minimization, as the input structure for stage 2 of our 
+minimization. Note, we also no longer need the <span style="font-family:&quot;Courier New&quot;">-ref</span> switch:</p>
+		<p><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;">$AMBERHOME/exe/sander -O -i <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-all-minimize.in"><font color="red">1cgh-all-minimize.in</font></a> \</span></p>
+		<p><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;"><span style="mso-spacerun:yes">������� </span>-o <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-all-minimize.out">1cgh-all-minimize.out</a> -c <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-hold-protein.rst"><font color="red">1cgh-hold-protein.rst</font></a> \</span></p>
+		<p><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;"><span style="mso-spacerun:yes">������� </span>-p <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-water-box.top"><font color="red">1cgh-water-box.top</font></a> -r <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-all-minimize.rst">1cgh-all-minimize.rst</a> </span></p>
+		<p align="center"><o:p>�<img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/sander-simple-opt.gif" alt="" width="506" height="554" border="0"></o:p></p>
+		<h3><i><span style="font-size:12.0pt">Molecular Dynamics (heating) with restraints on the solute</span></i></h3>
+		<p>Now that we have successfully minimised our system the next stage 
+in our equilibration protocol is allow our system to heat up from 0 K to
+ 300 K. In order to ensure this happens without any wild fluctuations in
+ our solute we will use a weak restraint, as we did in stage 1 of the 
+minimization, on the solute (DNA) atoms. Prior to AMBER 8 the 
+recommended method for maintaining temperature was to use the Berendsen 
+thermostat (NTT=1). This method is not very efficient at ensuring the 
+temperature remains even across the system and so one would typically 
+have to use NMR restraints in order to ensure that the heating occurred 
+very gradually over a timescale of about 20 ps. This was essential in 
+order� to avoid problems with hot solvent cold solute etc. AMBER 8 now 
+supports the new Langevin temperature equilibration scheme (NTT=3) which
+ is significantly better at maintaining and equalising the system 
+temperature. As a result the use of NMR restraints is no longer 
+necessary. In fact it may even be possible to simply start our system at
+ 300 K but we shall remain cautious and start from 0 K.</p>
+		<p>Note: you should use NTT=3 with care since while the Langevin 
+temperature regulation scheme equilibrates the temperature better, as a 
+method of maintaining a constant temperature during a production run it 
+is probably not so good. Experience with using Langevin dynamics for 
+temperature regulation has shown that the best approach in terms of 
+obtaining accurate dynamics, would be to equilibrate the system 
+initially with ntt=3, since it equilibrates temperature very well, and 
+then switch to ntt=1 for the production phase. Alternatively, assuming 
+the system is well equilibrated, you should be able to switch off the 
+thermostat all together and just run the explicit solvent calculation 
+with no thermostat (ntt=0). This is true since the force field is 
+conservative, hence you should be able to maintain constant energy for a
+ very long time. However, errors in the integrator (the fact that you 
+make a timestep approximation) and errors involved in using a cutoff 
+will eventually lead to you bleeding energy over time. Hence a weak 
+thermostat is often a good idea as it corrects for these errors.</p>
+		<p>The problem with using ntt=3 in a production calculation, is that 
+it alters the dynamics of the system. Essentially the short term 
+dynamics (fast dynamics) are radically altered and so if one is 
+interested in obtaining information about the fast dynamics of a system 
+during the production phase then ntt=3 cannot be used since it corrupts 
+this information. Berendsen (ntt=1) does not do this.</p>
+		<p>In terms of the long term dynamics ntt=3 also effects these but 
+where such transitions are not directly dependent on the fast dynamics, 
+i.e. something like an A-DNA to B-DNA structural conversion (as we will 
+try later in this tutorial), then ntt=3 can actually server to increase 
+the speed of these dynamics. In other words you can cover more phase 
+space in less time. However, the langevin dynamics while not effecting 
+the actual transition will effect the speed of the transition and as 
+such if you want information regarding timescales of structural 
+interconversions you again need to use ntt=1. However, if you are just 
+interested in going from a high energy structure to a lower one quickly 
+ntt=3 is probably the best method, but if you want to compute things 
+like time correlation functions then you need accurate fast dynamical 
+information so you need to avoid ntt=3. Thus the take home message is: 
+Think carefully about how a thermostat will affect your simulation and 
+choose appropriately. </p>
+		<p>Our final aim is to run production dynamics at constant temperature
+ and pressure since this more closely resembles laboratory conditions. 
+However, at low temperatures, as our system will be for the first few ps
+ the calculation of pressure is very inaccurate and so using constant 
+pressure periodic boundaries in this situation can lead to problems. 
+Using constant pressure with restraints can also cause problems so 
+initially we will run 20 ps of MD at constant volume. Once our system 
+has equilibrated over approximately 20 ps we will then switch off the 
+restraints and change to constant pressure before running a further 100 
+ps of equilibration at 300 K.</p>
+		<p>Since these simulations are significantly more computationally expensive than the <i>in vacuo</i>
+ and implicit solvent simulations it is essential that we try to reduce 
+the computational complexity as much as possible. One way to do this is 
+to use triangulated water, that is water in which the angle between the 
+hydrogens is kept fixed. One such model is the TIP3P water model with 
+which we solvated our system. When using such a water model it is 
+essential that the hydrogen atom motion of the water also be fixed since
+ failure to do this can lead to very large inaccuracies in the 
+calculation of the densities etc. Since the hydrogen atom motion in our 
+DNA is unlikely to effect its large scale dynamics we can fix these 
+hydrogens as well. One method of doing this is to use the SHAKE 
+algorithm in which all bonds involving hydrogen are constrained (<span style="font-family:&quot;Courier New&quot;">NTC=2</span>).
+ This method of removing hydrogen motion has the fortunate effect of 
+removing the highest frequency oscillation in the system, that of the 
+hydrogen vibrations. Since it is the highest frequency oscillation that 
+determines the maximum size of our time step (1 fs for the <i>in vacuo</i>
+ runs) by removing the hydrogen motion we can safely increase our time 
+step to 2 fs without introducing any instability into our MD simulation.
+ This has the effect of allowing us to cover a given amount of phase 
+space in half as much time since we need only 50,000 steps to cover 100 
+ps in time as opposed to the 100,000 we required with a 1 fs time step.</p>
+		<p>Note, if your system is very inhomogeneous you may need to run 
+short MD runs with smaller time steps, say 0.5 fs, before conducting 
+long MD runs with a 2 fs time step. This approach allows the system to 
+rapidly move out of an unfavourable geometry without wild oscillations 
+in the energy.</p>
+		<p>So, stage 1, 10 ps of MD with weak positional restraints on the DNA. Here is the input file:</p>
+		<pre>1cgh: 1ps MD with restraints on protein</pre>
+		<pre> &amp;cntrl</pre>
+		<pre><span style="mso-spacerun:yes">� </span>imin<span style="mso-spacerun:yes">�� </span>= 0,</pre>
+		<pre><span style="mso-spacerun:yes">� </span>irest<span style="mso-spacerun:yes">� </span>= 0,</pre>
+		<pre><span style="mso-spacerun:yes">� </span>ntx<span style="mso-spacerun:yes">��� </span>= 1,</pre>
+		<pre><span style="mso-spacerun:yes">� </span>ntb<span style="mso-spacerun:yes">��� </span>= 1,</pre>
+		<pre><span style="mso-spacerun:yes">� </span>cut<span style="mso-spacerun:yes">��� </span>= 10,</pre>
+		<pre><span style="mso-spacerun:yes">� </span>ntr<span style="mso-spacerun:yes">��� </span>= 1,</pre>
+		<pre><span style="mso-spacerun:yes">� </span>ntc<span style="mso-spacerun:yes">��� </span>= 2,</pre>
+		<pre><span style="mso-spacerun:yes">� </span>ntf<span style="mso-spacerun:yes">��� </span>= 2,</pre>
+		<pre><span style="mso-spacerun:yes">� </span>tempi<span style="mso-spacerun:yes">� </span>= 0.0,</pre>
+		<pre><span style="mso-spacerun:yes">� </span>temp0<span style="mso-spacerun:yes">� </span>= 300.0,</pre>
+		<pre><span style="mso-spacerun:yes">� </span>ntt<span style="mso-spacerun:yes">��� </span>= 3,</pre>
+		<pre><span style="mso-spacerun:yes">� </span>gamma_ln = 1.0,</pre>
+		<pre><span style="mso-spacerun:yes">� </span>nstlim = 5000, dt = 0.002</pre>
+		<pre><span style="mso-spacerun:yes">� </span>ntpr = 100, ntwx = 100, ntwr = 1000</pre>
+		<pre> /</pre>
+		<pre>Keep protein fixed with weak restraints</pre>
+		<pre>10.0</pre>
+		<pre>RES 1 228</pre>
+		<pre>END</pre>
+		<pre>END</pre>
+		<p>The meaning of each of the terms are as follows:</p>
+		<ul type="disc">
+			<li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l1 level1 lfo4;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">IMIN = 0</span>: Minimisation is turned off (run molecular dynamics)
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l1 level1 lfo4;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">IREST = 0, NTX = 1</span>: We are generating random initial velocities from a Boltzman distribution and only read in the coordinates from the <span style="font-family:&quot;Courier New&quot;">inpcrd</span>.
+ In other words this is the first stage of our molecular dynamics. Later
+ we will change these values to indicate that we want to restart a 
+molecular dynamics run from where we left off.
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l1 level1 lfo4;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">NTB = 1</span>: Use constant volume periodic boundaries (PME is always "on" with AMBER 8 when NTB&gt;0).
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l1 level1 lfo4;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">CUT = 10</span>: Use a cutoff of 10 angstroms.
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l1 level1 lfo4;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">NTR = 1</span>:
+ Use position restraints based on the GROUP input given in the input 
+file. In this case we will restrain the DNA with a force constant of 10 
+angstroms.
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l1 level1 lfo4;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">NTC = 2, NTF = 2</span>: SHAKE should be turned on and used to constrain bonds involving hydrogen.
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l1 level1 lfo4;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">TEMPI = 0.0, TEMP0 = 300.0</span>:
+ We will start our simulation with a temperature, derived from the 
+kinetic energy, of 0 K and we will allow it to heat up to 300 K. The 
+system should be maintained, by adjusting the kinetic energy, as 300 K.
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l1 level1 lfo4;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">NTT = 3, GAMMA_LN = 1.0</span>: The langevin dynamics should be used to control the temperature using a collision frequency of 1.0 ps<sup>-1</sup>.
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l1 level1 lfo4;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">NSTLIM = 5000, DT = 0.002</span>:
+ We are going to run a total of 5,000 molecular dynamics steps with a 
+time step of 2 fs per step, possible since we are now using SHAKE, to 
+give a total simulation time of 10 ps.
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l1 level1 lfo4;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">NTPR = 100, NTWX = 100, NTWR = 1000</span>: Write to the output file (<span style="font-family:&quot;Courier New&quot;">NTPR</span>) every 100 steps (200 fs), to the trajectory file (<span style="font-family:&quot;Courier New&quot;">NTWX</span>) every 100 steps and write a restart file (<span style="font-family:&quot;Courier New&quot;">NTWR</span>), in case our job crashes and we want to restart it, every 1,000 steps.
+		</li></ul>
+		<p>We run this using the following command. Note, we use the <span style="font-family:&quot;Courier New&quot;">restrt</span>
+ file from the second stage of our minimization since this contains the 
+final minimized structure. We also use this as the reference structure 
+with which to restrain the protein to:</p>
+		<p><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;"><font size="+1"><strong>$AMBERHOME/exe/sander -O -i <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-md-restr.in">1cgh-md-restr.in</a> \</strong></font></span></p>
+		<p><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;"><font size="+1"><strong><span style="mso-spacerun:yes">������� </span>-o <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-md-restr.out">1cgh-md-restr.out</a> -c <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-all-minimize.rst">1cgh-all-minimize.rst</a> \</strong></font></span></p>
+		<p><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;"><font size="+1"><strong><span style="mso-spacerun:yes">������� </span>-p <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-water-box.top">1cgh-water-box.top</a> -r <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-md-restr.rst">1cgh-md-restr.rst</a> \</strong></font></span></p>
+		<p><span style="font-size:10.0pt;font-family:&quot;Courier New&quot;"><font size="+1"><strong><span style="mso-spacerun:yes">�� �����</span>-ref 1cgh-all-minimize.rst -x <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-md-restr.mdcrd.gz">1cgh-md-restr.mdcrd</a></strong></font></span></p>
+		<p>Note: This simulation may take considerable amount of time to run (about 2 <span style="mso-ansi-language:EN-AU" lang="EN-AU">hours </span>on
+ one 2.66 GHz Pentium 4 processor). You can run this yourself if you 
+want or alternatively you can just use the output files provided in the 
+links above.</p>
+		<h3>Running MD Equilibration on the whole system</h3>
+		<p>Now that we have successfully heated our system at constant volume 
+with weak restraints on the protein the next stage is to switch to using
+ constant pressure, so that the density of our water can relax. At the 
+same time, now we are 300 K we can safely remove the restraints on our 
+protein.</p>
+		<p>We will run this equilibration for 100 ps to give our system plenty of time to relax.</p>
+		<pre>1cgh: 100ps MD</pre>
+		<pre> &amp;cntrl</pre>
+		<pre><span style="mso-spacerun:yes">� </span><span style="mso-spacerun:yes">��</span>imin = 0, irest = 1, ntx = 7,</pre>
+		<pre><span style="mso-spacerun:yes">� </span><span style="mso-spacerun:yes">��</span>ntb = 2, pres0 = 1.0, ntp = 1,</pre>
+		<pre><span style="mso-spacerun:yes">� </span><span style="mso-spacerun:yes">��</span>taup = 2.0,</pre>
+		<pre><span style="mso-spacerun:yes">� </span><span style="mso-spacerun:yes">��</span>cut = 10, ntr = 0,</pre>
+		<pre><span style="mso-spacerun:yes">� </span><span style="mso-spacerun:yes">��</span>ntc = 2, ntf = 2,</pre>
+		<pre><span style="mso-spacerun:yes">� </span><span style="mso-spacerun:yes">��</span>tempi = 300.0, temp0 = 300.0,</pre>
+		<pre><span style="mso-spacerun:yes">� </span><span style="mso-spacerun:yes">��</span>ntt = 3, gamma_ln = 1.0,</pre>
+		<pre><span style="mso-spacerun:yes">� </span><span style="mso-spacerun:yes">��</span>nstlim = 50000, dt = 0.002,</pre>
+		<pre><span style="mso-spacerun:yes">� </span><span style="mso-spacerun:yes">��</span>ntpr = 100, ntwx = 500, ntwr = 1000</pre>
+		<pre> /</pre>
+		<p>The meaning of each of the terms are as follows:</p>
+		<ul type="disc">
+			<li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l4 level1 lfo5;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">IMIN = 0</span>: Minimisation is turned off (run molecular dynamics)
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l4 level1 lfo5;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">IREST = 1, NTX = 7</span>: We want to restart our MD simulation where we left off after the 10 ps of constant volume simulation. <span style="font-family:&quot;Courier New&quot;">IREST</span>
+ tells sander that we want to restart a simulation, so the time is not 
+reset to zero but will start at 10 ps. Previously we have had <span style="font-family:&quot;Courier New&quot;">NTX</span> set at the default of 1 which meant only the coordinates were read from the <span style="font-family: &quot;Courier New&quot;">restrt</span> file. This time, however, we want to continue from where we finished so we set <span style="font-family:&quot;Courier New&quot;">NTX = 7</span> which means the coordinates, velocities and box information will be read from a formatted (ASCII) restrt file.
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l4 level1 lfo5;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">NTB = 2, PRES0 = 1.0, NTP = 1, TAUP = 2.0</span>: Use constant pressure periodic boundary with an average pressure of 1 atm (<span style="font-family:&quot;Courier New&quot;">PRES0</span>). Isotropic position scaling should be used to maintain the pressure (<span style="font-family: &quot;Courier New&quot;">NTP=1</span>) and a relaxation time of 2ps should be used (<span style="font-family:&quot;Courier New&quot;">TAUP=2.0</span>).
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l4 level1 lfo5;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">CUT = 10</span>: Use a cut off of 10 angstroms.
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l4 level1 lfo5;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">NTR = 0</span>: We are no longer using positional restraints.
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l4 level1 lfo5;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">NTC = 2, NTF = 2</span>: SHAKE should be turned on and used to constrain bonds involving hydrogen.
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l4 level1 lfo5;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">TEMPI = 300.0, TEMP0 = 300.0</span>:
+ Our system was already heated to 300 K during the first stage of MD so 
+here it will start at 300 K and should be maintained at 300 K.
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l4 level1 lfo5;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">NTT = 3, GAMMA_LN = 1.0</span>: The Langevin dynamics should be used to control the temperature using a collision frequency of 1.0 ps<sup>-1</sup>.
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l4 level1 lfo5;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">NSTLIM = 50000, DT = 0.002</span>:
+ We are going to run a total of 50,000 molecular dynamics steps with a 
+time step of 2 fs per step, possible since we are now using SHAKE, to 
+give a total simulation time of 100 ps.
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l4 level1 lfo5;tab-stops:list 36.0pt"><span style="font-family: &quot;Courier New&quot;">NTPR = 100, NTWX = 500, NTWR = 1000</span>: Write to the output file (<span style="font-family:&quot;Courier New&quot;">NTPR</span>) every 100 steps (200 fs), to the trajectory file (<span style="font-family:&quot;Courier New&quot;">NTWX</span>) every 500 steps and write a restart file (<span style="font-family:&quot;Courier New&quot;">NTWR</span>), in case our job crashes and we want to restart it, every 1,000 steps.
+		</li></ul>
+		<p>We run this using the following command. Note, we use the <span style="font-family:&quot;Courier New&quot;">restrt</span> file from the first stage of our MD since this contains the final MD frame, velocities and box information.</p>
+		<p><span style="font-family:&quot;Courier New&quot;">$AMBERHOME/exe/sander -O -i <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-equilib-md.in"><font color="red">1cgh-equilib-md.in</font></a> \</span></p>
+		<p><span style="font-family:&quot;Courier New&quot;"><span style="mso-spacerun:yes">������� </span>-o <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-equilib-md.out">1cgh-equilib-md.out</a> -c <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-md-restr.rst"><font color="red">1cgh-md-restr.rst</font></a> \</span></p>
+		<p><span style="font-family:&quot;Courier New&quot;"><span style="mso-spacerun:yes">������� </span>-p <font color="red">1cgh-water-box.top</font> -r <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-equilib-md.rst">1cgh-equilib-md.rst</a></span> \</p>
+		<p><span style="font-family:&quot;Courier New&quot;"><span style="mso-spacerun:yes">������� </span>-x <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-equilib-md.mdcrd.gz">1cgh-equilib-md.mdcrd</a></span></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/sander-simple-md.gif" alt="" width="530" height="550" border="0"></p>
+		<p>Note: This simulation may take considerable amount of time to run, 
+on a single 2.66 GHz Pentium 4 processor it takes approximately 23 
+hours. You can run this yourself if you want but alternatively you can 
+just use the output files provided in the links above.<span style="font-family:&quot;Courier New&quot;"> </span></p>
+		<h2>Analysing the results to test the equilibration</h2>
+		<p>Now that we have equilibrated our system it is essential that we 
+check that equilibrium has successfully been achieved before moving on 
+to running any production MD simulations in which we would hope to learn
+ something new about our molecule.</p>
+		<p>There are a number of system properties that we should monitor to check the quality of our equilibrium. These include:</p>
+		<ul type="disc">
+			<li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l2 level1 lfo6;tab-stops:list 36.0pt">Potential, Kinetic and Total energy
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l2 level1 lfo6;tab-stops:list 36.0pt">Temperature
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l2 level1 lfo6;tab-stops:list 36.0pt">Pressure
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l2 level1 lfo6;tab-stops:list 36.0pt">Volume
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l2 level1 lfo6;tab-stops:list 36.0pt">Density
+			</li><li class="MsoNormal" style="mso-margin-top-alt:auto;mso-margin-bottom-alt:auto; mso-list:l2 level1 lfo6;tab-stops:list 36.0pt">RMSd
+		</li></ul>
+		<p>The following steps will illustrate how to extract this data and 
+plot it and also discuss what we expect to see for a successful 
+equilibration.</p>
+		<h3><i><span style="font-size:12.0pt">Analysing the output files</span></i></h3>
+		<p>In this section we will look at the system properties that can be extracted from the data written to the <span style="font-family:&quot;Courier New&quot;">mdout</span>
+ files during our 100ps of MD simulation. This includes the potential, 
+kinetic and total energies, the temperature, pressure, volume and 
+density. Here is file <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-equilib-md.dat">1cgh-equilib-md.dat</a> which contains time, temperature, pressure, total energy, potential energy, volume, and density, respectively.</p>
+		<p>Lets plot some of these to see if we have successfully reached an equilibrium. First of all the energies, potential and total:</p>
+		<table width="122" cellspacing="5" cellpadding="5" border="0">
+			<tbody><tr>
+				<td><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/1cgh-total-energy.gif" alt="" width="611" height="519" border="0"></td>
+				<td><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/1cgh-potential-energy.gif" alt="" width="610" height="504" border="0"></td>
+			</tr>
+		</tbody></table>
+		<p>The important points to note with this plot is that all of the 
+energies decreased during the first 30 ps. The potential energy, and 
+consequently the total energy, initially decreased and then plateaued 
+for the remainder of our simulation (40 to 110 ps) indicating that the 
+relaxation was completed and that we reached an equilibrium.</p>
+		<p>Next we plot the temperature:</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/1cgh-temperature.gif" alt="" width="591" height="510" border="0"></p>
+		<p>We see that the temperature remained more or less constant during 
+the simulation indicating the use of Langevin dynamics for temperature 
+regulation was successful.</p>
+		<p>Next the pressure:</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/1cgh-pressure.gif" alt="" width="594" height="490" border="0"></p>
+		<p>For the first 20 ps the pressure is negative and increases sharply 
+becoming positive. The negative pressures correspond to a "force" acting
+ to decrease the box size and the positive pressures to a "force" acting
+ to increase the box size. The important point here is that while the 
+pressure graph seems to show that the pressure fluctuated wildly during 
+the simulation the mean pressure stabilised around 1 atm after about 20 
+ps of simulation. This is sufficient to indicate successful 
+equilibration.</p>
+		<p>Next we plot the volume:</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/1cgh-volume.gif" alt="" width="604" height="502" border="0"></p>
+		<p>Notice how the volume of our system (in angstroms<sup>3</sup>) 
+initially decreases as our water box relaxes and reaches and 
+equilibrated density, and thus volume. The smooth transitions in this 
+plot followed by the oscillations about a mean value suggest our 
+equilibration has been successful.</p>
+		<p>Finally, lets take a look at the density, we expect this to mirror the volume.</p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/1cgh-density.gif" alt="" width="596" height="505" border="0"></p>
+		<p>Our system has equilibrated at a density of approximately 1.025 g cm<sup>-3</sup>. This seems reasonable. The density of pure liquid water at 300 K is approximately 1.00 g cm<sup>-3</sup> so adding a protein and the associated charges has increased the density by around 2.5 %.</p>
+		<h2>Analysing the trajectory</h2>
+		<p>Now we have analyzed our output files and seen that the main system
+ properties suggest that our equilibration has been successful the next 
+step is to consider the structures. Have they remained reasonable? One 
+useful measure to consider is the root mean square deviation (RMSd) from
+ the starting structure. We can use <i><span style="font-family:&quot;Courier New&quot;">ptraj</span></i>
+ to calculate this for us as a function of time. In this situation we 
+are interested in the backbone of our protein so we shall consider just 
+the main backbone atoms, C, CA, and N. We will conduct a standard (not 
+mass weighted) RMS fit to the structure of our final minimization (we 
+are using file <span style="font-family:&quot;Courier New&quot;">1cgh-all-minimize.rst</span>
+ as a reference). Note, the time is set to 1 this time around since 
+although we wrote to the trajectory file every 500 steps the time step 
+was 2 fs - hence 100 steps = 1 ps. Here is the input file for <i><span style="font-family:&quot;Courier New&quot;">ptraj</span></i>:</p>
+		<p><span style="font-family:&quot;Courier New&quot;">trajin 1cgh-equilib-md.mdcrd.gz</span></p>
+		<p><span style="font-family:&quot;Courier New&quot;">reference 1cgh-all-minimize.rst</span></p>
+		<p><span style="font-family:&quot;Courier New&quot;">rms reference out <a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/1cgh-backbone.rms">1cgh-backbone.rms</a> @C,N,CA time 1</span></p>
+		<p>Lets run <i><span style="font-family:&quot;Courier New&quot;">ptraj</span></i> to calculate the RMSd of the protein backbone atoms:</p>
+		<p><span style="font-family:&quot;Courier New&quot;">$AMBERHOME/exe/ptraj 1cgh-water-box.top &lt;<a href="http://sf.anu.edu.au/~vvv900/monash/nonstandard-setup/analize-md.in">analize-md.in</a></span></p>
+		<p align="center"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/1cgh-rmsd.gif" alt="" width="579" height="505" border="0"></p>
+		<p>Here we see that the RMSd of the protein backbone atoms increases 
+slowly as the protein relaxed within the solvent. We don�t see any wild 
+oscillations.</p>
+	</div>
+	<!-- Start of StatCounter Code -->
+<script type="text/javascript">
+var sc_project=6395352; 
+var sc_invisible=0; 
+var sc_security="b155f7fc"; 
+</script>
+
+<script type="text/javascript" src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/counter.js"></script><span class="statcounter"><a class="statcounter" href="http://www.statcounter.com/" target="_blank"><img src="Create%20the%20necessary%20topology%20and%20coordinate%20files%20for%20non-standard%20residue_files/t.png" alt="StatCounter - Free Web Tracker and Counter" border="0"></a></span>
+<noscript><div
+class="statcounter"><a title="godaddy analytics"
+href="http://statcounter.com/godaddy_website_tonight/"
+target="_blank"><img class="statcounter"
+src="http://c.statcounter.com/6395352/0/b155f7fc/0/"
+alt="godaddy analytics" ></a></div></noscript>
+<!-- End of StatCounter Code ?
+
+</body>
+
+</html>
+--></body></html>
